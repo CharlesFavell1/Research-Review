@@ -1,0 +1,36 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+
+#two model for 2 osc, we have to decuple both equations into 2 1st order
+
+
+def odes(theta, t):
+    a = 1
+    b = 1 
+    W = 1
+    w = 1
+    theta1, z1, theta2, z2 = theta
+    
+    f = (1-np.cos(theta1))
+    
+    theta1dot = z1
+    z1dot = W*np.sin(w*t) - a*theta1 - b*z1
+    theta2dot = z2
+    z2dot = W*f*np.sin(w*t) -a*theta2 - b*z2
+    
+    return theta1dot, z1dot, theta2dot, z2dot
+
+#timing
+tmax, dt = 100, 0.01
+t= np.arange(0, tmax+dt, dt)
+y0 = (-0.1,0,0.2,0)
+
+y = odeint(odes, y0, t)
+
+theta1 , theta2 = y[:,0], y[:,2]
+
+print(y)
+
+plt.plot(t,y[:,3])
+    
