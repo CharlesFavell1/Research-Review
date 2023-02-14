@@ -1,0 +1,53 @@
+import numpy as np
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+
+# Define the right-hand side of the coupled ODEs
+def odes(y, t, N, b, c, F, w):
+    dydt = np.zeros((2*N,))
+    dydt[0] = y[1]
+    dydt[1] = -b*y[1] - c*y[0] + F*np.sin(w*t)
+    for i in range(1, N):
+        dydt[2*i] = y[2*i+1]
+        dydt[2*i+1] = -b*y[2*i+1] - c*y[2*i] + F*np.sin(w*t)*(1 - np.cos(y[2*i-2]))
+    return dydt
+
+# Initial conditions
+N = 10 # Number of systems
+y0 = np.zeros(2*N) # Initial values for each of the N systems
+t = np.linspace(0, 100, 1000) # Time range
+
+# Parameters
+b = 0.5
+c = 10
+F = 5.0
+w = 1
+
+# Solve the ODEs using odeint
+sol = odeint(odes, y0, t, args=(N, b, c, F, w))
+
+# Plot the solution
+for i in range(N):
+    plt.plot(t, sol[:, 2*i], label='y{}'.format(i))
+plt.legend()
+plt.xlabel('t')
+plt.ylabel('y')
+plt.show()
+
+# Compute the Fourier Transform
+dt = t[1] - t[0]
+N = sol.shape[0]
+f = np.fft.fftfreq(N, dt)
+f_shift = np.fft.fftshift(f)
+Y = np.fft.fft(sol[:, 6])
+Y_magnitude = np.abs(np.fft.fftshift(Y))
+
+# Plot the Fourier Transform
+plt.plot(f_shift, Y_magnitude)
+plt.xlabel('f (Hz)')
+plt.ylabel('Magnitude of Y')
+plt.show()
+
+max_index = np.argmax(Y_magnitude)
+frequency_of_max = f_shift[max_index]
+print("The frequency of the maxima is {:.2f} Hz".format(frequency_of_max))
